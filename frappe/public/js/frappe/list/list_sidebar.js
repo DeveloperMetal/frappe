@@ -24,6 +24,7 @@ frappe.views.ListSidebar = Class.extend({
 			.appendTo(this.page.sidebar.empty());
 
 		this.setup_reports();
+		this.setup_stored_filters();
 		this.setup_assigned_to_me();
 		this.setup_views();
 		this.setup_kanban_boards();
@@ -123,6 +124,212 @@ frappe.views.ListSidebar = Class.extend({
 		// from specially tagged reports
 		add_reports(frappe.boot.user.all_reports || []);
 	},
+
+	setup_stored_filters: function() {
+		var me = this;
+		var $store_filters = this.page.sidebar.find('.stored-filters');
+
+		var refresh_filter_tools = function(freeze) {
+			if ( freeze === undefined ) {
+				freeze = 0;
+			}
+
+			frappe.call({
+				method: "frappe.desk.filters.get_filters",
+				args: {	dt: doctype	},
+				freeze: freeze,
+				callback: function(r) {
+					var filters = []
+					if ( r.message == "Success" ) {
+						filters = r.docs;
+					}
+
+					// enable global filters by roles
+					var can_add_global = frappe.user.has_role("System Manager") || frappe.user.has_role("Administrator");
+
+					// cache filters by name to quickly find them
+					var filter_cache = {}
+					filters.forEach(function(filter, i) {
+						filter_cache[filter.name] = filter;
+
+						// set li class and icon
+						if ( filter.user_id ) {
+							filter.li_css = "is_user";
+							filter.icon = "glyphicon-user";
+							filter.title = __("User Filter");
+						} else {
+							filter.li_css = "is_global";
+							filter.icon = "glyphicon-globe";
+							filter.title = __("Global Filter");
+						}
+					});
+
+					// inject our widget template
+					$store_filters.empty().append(frappe.render(frappe.templates.stored_filters, {
+						can_add_global: can_add_global,
+						filters: filters
+					}));
+
+					// hide options by default
+					var $options = $store_filters.find('.options').hide();
+
+					// only show options when the filter name is entered
+					$store_filters.find('.filter-name')
+						.keyup(function() {
+							if ( $(this).val() ) {
+								$options.slideDown('fast');
+							} else {
+								$options.slideUp('fast');
+							}
+						}).change(function() {
+							if ( $(this).val() ) {
+								$options.slideDown('fast');
+							} else {
+								$options.slideUp('fast');
+							}
+						});
+
+					// handle stored filter click
+					$store_filters.find('.filter-link').click(function() {
+							var $filter_container = $(this).parent();
+							var name = $filter_container.attr('data-name');
+							var filter = filter_cache[name];
+
+							if ( filter ) {
+								cur_list.filter_list.clear_filters();
+								filter.filter_list.forEach(function(f, i) {
+									var value = f.filter_value;
+									// handle "Between" condition type
+									if ( f.is_date && f.filter_condition == "Between" ) {
+										value = [f.filter_value, f.filter_value2];
+									}
+									var dt = f.filter_dt || doctype;
+									cur_list.filter_list.add_filter(dt, f.filter_fieldname, f.filter_condition, value);
+								});
+							}
+
+							cur_list.refresh(true);
+					});
+
+					// handle remove button
+					$store_filters.find('.filter-remove').click(function() {
+						var $filter_container = $(this).parent();
+ 						var name = $filter_container.attr('data-name');
+						var filter = filter_cache[name];
+
+						if ( filter ) {
+							frappe.call({
+								method: "filter_tools.filters.remove",
+								args: { name: name },
+								freeze: 1,
+								callback: function() {
+									// re-render filter list now with new item
+									refresh_filter_tools(1);
+								}
+							});
+						}
+					});
+
+					// handle save button click
+					$store_filters.find('a.save-filter').click(function() {
+						var label = $store_filters.find('.filter-name').val();
+						var filters =  cur_list.filter_list.get_filters();
+
+						if ( filters.length == 0 ) {
+							frappe.msgprint("There are no filters to store");
+							return;
+						}
+
+						var data = [];
+
+						$.each(filters, function(i, filter) {
+							var filter_dt = filter[0];
+							var fieldname = filter[1];
+							var condition = filter[2];
+							var value1 = filter[3];
+							var value2 = null;
+							var is_date = false;
+
+							if ( value1 ) {
+								if (typeof value1.getMonth === 'function') {
+									try {
+										value1 = moment(value1).format('YYYY-MM-DD');
+										is_date = true;
+									} catch(ex) {
+										frappe.msgprint("Invalid Date Value: " + value1);
+										return;
+									}
+								} else if ( value1.constructor == Array ) {
+									is_date = true;
+
+									// is there a better way to do this?
+									try {
+										value2 = moment(value1[1]).format('YYYY-MM-DD');
+									} catch(ex) {
+										frappe.msgprint("Invalid Date Value: " + value[1]);
+										return;
+									}
+
+									try {
+										value1 = moment(value1[0]).format('YYYY-MM-DD');
+									} catch(ex) {
+										frappe.msgprint("Invalid Date Value: " + value1[0]);
+										return;
+									}
+
+								}
+							}
+
+							var filter_data = {
+								filter_dt: filter_dt,
+								filter_condition: condition,
+								filter_fieldname: fieldname,
+								filter_value: value1,
+								is_date: is_date
+							}
+
+							if ( value2 ) {
+								filter_data["filter_value2"] = value2
+							}
+
+							data.push(filter_data);
+						});
+
+						// get is global option if checked
+						var is_global = $store_filters.find('.options input[name="is_global"]').is(':checked');
+
+						var args = {
+							label: label,
+							filter_doctype: doctype,
+							filter_list: data
+						}
+
+						// assign the owning user of this filter
+						if ( !is_global ) {
+							args.user = frappe.user.name;
+						}
+
+						frappe.call({
+							method: "frappe.desk.filters.add",
+							args: args,
+							freeze: 1,
+							callback: function() {
+								// re-render filter list now with new item
+								refresh_filter_tools(1);
+							}
+						})
+
+					});
+
+				}
+			})
+		};
+
+		// kick off fetching filters
+		refresh_filter_tools();
+
+	},
+
 	setup_kanban_boards: function() {
 		// add kanban boards linked to this doctype to the dropdown
 		var me = this;
