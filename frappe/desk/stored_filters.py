@@ -6,13 +6,13 @@ import json
 def get_filters(dt):
 
 	# global filters
-	global_filters = frappe.get_all("Custom Listview Filter", \
+	global_filters = frappe.get_all("Stored Filter", \
 		filters={"filter_doctype": dt, "user_id": ""}, \
 		order_by="label"
 	)
 
 	# user filters
-	user_filters = frappe.get_all("Custom Listview Filter", \
+	user_filters = frappe.get_all("Stored Filter", \
 		filters={"filter_doctype": dt, "user_id": frappe.session.user}, \
 		order_by="label"
 	)
@@ -20,11 +20,11 @@ def get_filters(dt):
 	result = []
 
 	for f in global_filters:
-		doc = frappe.get_doc("Custom Listview Filter", f["name"])
+		doc = frappe.get_doc("Stored Filter", f["name"])
 		result.append(doc.as_dict())
 
 	for f in user_filters:
-		doc = frappe.get_doc("Custom Listview Filter", f["name"])
+		doc = frappe.get_doc("Stored Filter", f["name"])
 		result.append(doc.as_dict())
 
 	frappe.response["docs"] = result
@@ -32,7 +32,7 @@ def get_filters(dt):
 
 @frappe.whitelist()
 def remove(name):
-	frappe.delete_doc("Custom Listview Filter", name, ignore_permissions=1)
+	frappe.delete_doc("Stored Filter", name, ignore_permissions=1)
 	return
 
 @frappe.whitelist()
@@ -42,7 +42,7 @@ def add(label, filter_doctype, filter_list, user=None):
 		filter_list = json.loads(filter_list)
 
 	doc = frappe.get_doc({
-		"doctype": "Custom Listview Filter",
+		"doctype": "Stored Filter",
 		"label": label,
 		"filter_doctype": filter_doctype,
 		"user_id": user
@@ -52,8 +52,7 @@ def add(label, filter_doctype, filter_list, user=None):
 	doc.insert()
 
 	for f in filter_list:
-		print(f)
-		f["doctype"] = "Custom Listview Filter Item"
+		f["doctype"] = "Stored Filter Item"
 		doc.append("filter_list", f)
 
 	doc.save()

@@ -127,7 +127,7 @@ frappe.views.ListSidebar = Class.extend({
 
 	setup_stored_filters: function() {
 		var me = this;
-		var $store_filters = this.page.sidebar.find('.stored-filters');
+		var $stored_filters = this.page.sidebar.find('.stored-filters');
 
 		var refresh_filter_tools = function(freeze) {
 			if ( freeze === undefined ) {
@@ -135,8 +135,8 @@ frappe.views.ListSidebar = Class.extend({
 			}
 
 			frappe.call({
-				method: "frappe.desk.filters.get_filters",
-				args: {	dt: doctype	},
+				method: "frappe.desk.stored_filters.get_filters",
+				args: {	dt: me.doctype	},
 				freeze: freeze,
 				callback: function(r) {
 					var filters = []
@@ -164,17 +164,18 @@ frappe.views.ListSidebar = Class.extend({
 						}
 					});
 
+					console.log(filters, can_add_global);
 					// inject our widget template
-					$store_filters.empty().append(frappe.render(frappe.templates.stored_filters, {
+					$stored_filters.empty().append(frappe.render_template("list_stored_filters", {
 						can_add_global: can_add_global,
 						filters: filters
 					}));
 
 					// hide options by default
-					var $options = $store_filters.find('.options').hide();
+					var $options = $stored_filters.find('.options').hide();
 
 					// only show options when the filter name is entered
-					$store_filters.find('.filter-name')
+					$stored_filters.find('.filter-name')
 						.keyup(function() {
 							if ( $(this).val() ) {
 								$options.slideDown('fast');
@@ -190,7 +191,7 @@ frappe.views.ListSidebar = Class.extend({
 						});
 
 					// handle stored filter click
-					$store_filters.find('.filter-link').click(function() {
+					$stored_filters.find('.filter-link').click(function() {
 							var $filter_container = $(this).parent();
 							var name = $filter_container.attr('data-name');
 							var filter = filter_cache[name];
@@ -212,7 +213,7 @@ frappe.views.ListSidebar = Class.extend({
 					});
 
 					// handle remove button
-					$store_filters.find('.filter-remove').click(function() {
+					$stored_filters.find('.filter-remove').click(function() {
 						var $filter_container = $(this).parent();
  						var name = $filter_container.attr('data-name');
 						var filter = filter_cache[name];
@@ -231,8 +232,8 @@ frappe.views.ListSidebar = Class.extend({
 					});
 
 					// handle save button click
-					$store_filters.find('a.save-filter').click(function() {
-						var label = $store_filters.find('.filter-name').val();
+					$stored_filters.find('a.save-filter').click(function() {
+						var label = $stored_filters.find('.filter-name').val();
 						var filters =  cur_list.filter_list.get_filters();
 
 						if ( filters.length == 0 ) {
@@ -251,6 +252,7 @@ frappe.views.ListSidebar = Class.extend({
 							var is_date = false;
 
 							if ( value1 ) {
+								// lets figure out if we have a valid date instance
 								if (typeof value1.getMonth === 'function') {
 									try {
 										value1 = moment(value1).format('YYYY-MM-DD');
@@ -260,6 +262,7 @@ frappe.views.ListSidebar = Class.extend({
 										return;
 									}
 								} else if ( value1.constructor == Array ) {
+									// date range
 									is_date = true;
 
 									// is there a better way to do this?
@@ -296,11 +299,11 @@ frappe.views.ListSidebar = Class.extend({
 						});
 
 						// get is global option if checked
-						var is_global = $store_filters.find('.options input[name="is_global"]').is(':checked');
+						var is_global = $stored_filters.find('.options input[name="is_global"]').is(':checked');
 
 						var args = {
 							label: label,
-							filter_doctype: doctype,
+							filter_doctype: me.doctype,
 							filter_list: data
 						}
 
@@ -310,7 +313,7 @@ frappe.views.ListSidebar = Class.extend({
 						}
 
 						frappe.call({
-							method: "frappe.desk.filters.add",
+							method: "frappe.desk.stored_filters.add",
 							args: args,
 							freeze: 1,
 							callback: function() {

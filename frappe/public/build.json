@@ -294,6 +294,7 @@
 	"css/list.min.css": [
 		"public/js/lib/taggle/taggle.min.css",
 		"public/css/list.css",
+		"public/css/stored_filters.css",
 		"public/css/calendar.css",
 		"public/css/role_editor.css",
 		"public/css/gantt.css"
@@ -316,6 +317,7 @@
 		"public/js/frappe/list/list_sidebar.js",
 		"public/js/frappe/list/list_sidebar.html",
 		"public/js/frappe/list/list_sidebar_stat.html",
+		"public/js/frappe/list/list_stored_filters.html",
 		"public/js/frappe/list/list_item_main.html",
 		"public/js/frappe/list/list_item_row.html",
 		"public/js/frappe/list/list_item_main_head.html",

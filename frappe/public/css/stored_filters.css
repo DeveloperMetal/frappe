@@ -1,0 +1,12 @@
+.stored-filters .list-item {
+	display: flex;
+	flex-direction: row;
+}
+
+.stored-filters .module-sidebar-item .filter-link {
+	flex: 1 1;
+}
+
+.stored-filters .module-sidebar-item .filter-link .glyphicon {
+	margin-right: .5em;
+}
