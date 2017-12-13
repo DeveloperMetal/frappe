@@ -116,6 +116,7 @@
 		"public/css/avatar.css",
 		"public/css/navbar.css",
 		"public/css/sidebar.css",
+		"public/css/stored_filters.css",
 		"public/css/page.css",
 		"public/css/tree.css",
 		"public/css/desktop.css",
@@ -294,7 +295,6 @@
 	"css/list.min.css": [
 		"public/js/lib/taggle/taggle.min.css",
 		"public/css/list.css",
-		"public/css/stored_filters.css",
 		"public/css/calendar.css",
 		"public/css/role_editor.css",
 		"public/css/gantt.css"
