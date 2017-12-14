@@ -164,7 +164,6 @@ frappe.views.ListSidebar = Class.extend({
 						}
 					});
 
-					console.log(filters, can_add_global);
 					// inject our widget template
 					$stored_filters.empty().append(frappe.render_template("list_stored_filters", {
 						can_add_global: can_add_global,

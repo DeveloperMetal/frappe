@@ -1,16 +1,16 @@
 <li class="divider"></li>
 <li class="h6 stat-label">{{ __("Stored Filters") }}</li>
-<li class="actions module-sidebar-item">
+<li class="actions">
 	<input type="text" class="filter-name" placeholder="{{ __("Save Filters") }}"/>
 	<a class="btn btn-default btn-xs save-filter">{{ __("Save") }}</a>
 </li>
 {% if ( can_add_global ) { %}
-<li class="options module-sidebar-item">
+<li class="options">
 	<label><input type="checkbox" name="is_global"/>{{ __("Is Global") }}</label>
 </li>
 {% } %}
 {% for (var i=0; i < filters.length; i++) { %}
-<li class="filter module-sidebar-item {%= filters[i].li_css %}"
+<li class="filter {%= filters[i].li_css %}"
 		data-name="{%=filters[i].name %}">
 	<a class="filter-link"
 			title="{%= filters[i].title %}">
