@@ -220,7 +220,7 @@ frappe.views.ListSidebar = Class.extend({
 
 						if ( filter ) {
 							frappe.call({
-								method: "filter_tools.filters.remove",
+								method: "frappe.desk.stored_filters.remove",
 								args: { name: name },
 								freeze: 1,
 								callback: function() {
