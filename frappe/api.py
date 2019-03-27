@@ -7,10 +7,9 @@ import frappe
 import frappe.handler
 import frappe.client
 from frappe.utils.response import build_response
-from frappe import _
+from frappe import _, graphql
 from six.moves.urllib.parse import urlparse, urlencode
 import base64
-
 
 def handle():
 	"""
@@ -54,6 +53,9 @@ def handle():
 	if call=="method":
 		frappe.local.form_dict.cmd = doctype
 		return frappe.handler.handle()
+
+	elif call=="graphql":
+		graphql.handle()
 
 	elif call=="resource":
 		if "run_method" in frappe.local.form_dict:
