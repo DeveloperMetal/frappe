@@ -57,8 +57,6 @@ def application(request):
 		frappe.monitor.start()
 		frappe.rate_limiter.apply()
 
-		print("[%s] Handing request..." % frappe.local.request.path)
-
 		if frappe.local.form_dict.cmd:
 			response = frappe.handler.handle()
 
