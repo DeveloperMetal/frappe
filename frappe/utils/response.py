@@ -184,6 +184,68 @@ def download_private_file(path):
 
 	return send_private_file(path.split("/private", 1)[1])
 
+def process_thumbnail(path):
+	"""Processes a /thumbnail/<image file> path with optional resize, resampling and
+	quality settings while keeping its aspect ratio intact.
+
+	Examples: 
+	
+	/thumbnail/myimage.jpg?size=300&resample=0&quality=20
+	/thumbnail/myimage.jpg?width=300&resample=0&quality=20
+	/thumbnail/myimage.jpg?height=300&resample=0&quality=20
+	/thumbnail/myimage.jpg?width=200&height=300&resample=0&quality=20
+
+	Options:
+
+		- width: The maximum image width desired in pixels.
+
+		- height: The maximum image height desired in pixels.
+
+		- size: A single value for maximum image width and height desired in pixels.
+
+		- resample: Sampling filter value from 0 to 5. See below from worst(fastest) to best(slowest).
+			Defaults to 2 - BILINEAR:
+
+			- 0: Nearest - Pick one nearest pixel from the input image. Ignore all other input pixels.
+			- 1: Box - Each pixel of source image contributes to one pixel of the destination image with identical weights
+			- 2: Bilinear - For resize calculate the output pixel value using linear interpolation on all pixels that may contribute to the output value
+			- 3: Hamming - Produces a sharper image than BILINEAR, doesn’t have dislocations on local level like with BOX.
+			- 4: Bicubic - For resize calculate the output pixel value using cubic interpolation on all pixels that may contribute to the output value
+			- 5: Lanczos - Calculate the output pixel value using a high-quality Lanczos filter (a truncated sinc) on all pixels that may contribute to the output value
+
+		- quality: For JPG images from 0(smallest files size) worst to 100(largest file size) best. Defaults to 75
+	"""
+
+	# Transform thumbnail path to public/files/ path
+	file_path = os.path.join('public', 'files', *os.path.split(path)[1:])
+	filename = os.path.basename(file_path)
+
+	# Build options query for caching id
+	options = '&'.join([ 
+		"%s=%s" % (key, value) \
+		for key, value in frappe.local.form_dict.items() \
+			if key in ["size", "width", "height", "resample", "quality"]
+	])
+
+	# Build cache path for this image and retrieve data
+	cache_path = "{}?{}".format(path, options)
+	buffer = frappe.cache().hget("thumbnail_cache", cache_path)
+
+	if not buffer:
+		from frappe.utils.image import process_thumbnail
+		buffer = process_thumbnail(file_path, frappe.local.form_dict)
+
+		# set cache only when generating a new thumbnail
+		frappe.cache().hset("thumbnail_cache", cache_path, buffer)
+
+	if buffer:
+		response = Response(buffer.getvalue(), direct_passthrough=True)
+		response.mimetype = mimetypes.guess_type(filename)[0] or 'application/octet-stream'
+		return response
+
+	else:
+		from werkzeug.exceptions import HTTPException, NotFound
+		raise NotFound
 
 def send_private_file(path):
 	path = os.path.join(frappe.local.conf.get('private_path', 'private'), path.strip("/"))

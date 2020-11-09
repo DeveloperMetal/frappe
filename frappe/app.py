@@ -57,6 +57,8 @@ def application(request):
 		frappe.monitor.start()
 		frappe.rate_limiter.apply()
 
+		print("[%s] Handing request..." % frappe.local.request.path)
+
 		if frappe.local.form_dict.cmd:
 			response = frappe.handler.handle()
 
@@ -65,6 +67,9 @@ def application(request):
 
 		elif frappe.request.path.startswith('/backups'):
 			response = frappe.utils.response.download_backup(request.path)
+
+		elif frappe.request.path.startswith('/thumbnail/'):
+			response = frappe.utils.response.process_thumbnail(request.path)
 
 		elif frappe.request.path.startswith('/private/files/'):
 			response = frappe.utils.response.download_private_file(request.path)
