@@ -1,0 +1,44 @@
+[
+ {
+  "docstatus": 0,
+  "doctype": "Image Resize Preset",
+  "height": 250,
+  "modified": "2020-11-10 10:44:21.732578",
+  "name": "small",
+  "parent": null,
+  "parentfield": null,
+  "parenttype": null,
+  "preset_name": "small",
+  "quality": 75,
+  "resample": "Bilinear",
+  "width": 250
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Image Resize Preset",
+  "height": 500,
+  "modified": "2020-11-10 10:44:39.825093",
+  "name": "medium",
+  "parent": null,
+  "parentfield": null,
+  "parenttype": null,
+  "preset_name": "medium",
+  "quality": 75,
+  "resample": "Bilinear",
+  "width": 500
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Image Resize Preset",
+  "height": 1024,
+  "modified": "2020-11-10 10:45:01.203713",
+  "name": "large",
+  "parent": null,
+  "parentfield": null,
+  "parenttype": null,
+  "preset_name": "large",
+  "quality": 60,
+  "resample": "Bilinear",
+  "width": 1024
+ }
+]

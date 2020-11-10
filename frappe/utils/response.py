@@ -8,7 +8,7 @@ import decimal
 import mimetypes
 import os
 import frappe
-from frappe import _
+from frappe import _, _dict
 import frappe.model.document
 import frappe.utils
 import frappe.sessions
@@ -184,56 +184,41 @@ def download_private_file(path):
 
 	return send_private_file(path.split("/private", 1)[1])
 
-def process_thumbnail(path):
-	"""Processes a /thumbnail/<image file> path with optional resize, resampling and
+def resize_image(path):
+	"""Processes a /resize/<image file> path with optional resize, resampling and
 	quality settings while keeping its aspect ratio intact.
 
 	Examples: 
 	
-	/thumbnail/myimage.jpg?size=300&resample=0&quality=20
-	/thumbnail/myimage.jpg?width=300&resample=0&quality=20
-	/thumbnail/myimage.jpg?height=300&resample=0&quality=20
-	/thumbnail/myimage.jpg?width=200&height=300&resample=0&quality=20
+	/resize/myimage.jpg?size=small
 
-	Options:
-
-		- width: The maximum image width desired in pixels.
-
-		- height: The maximum image height desired in pixels.
-
-		- size: A single value for maximum image width and height desired in pixels.
-
-		- resample: Sampling filter value from 0 to 5. See below from worst(fastest) to best(slowest).
-			Defaults to 2 - BILINEAR:
-
-			- 0: Nearest - Pick one nearest pixel from the input image. Ignore all other input pixels.
-			- 1: Box - Each pixel of source image contributes to one pixel of the destination image with identical weights
-			- 2: Bilinear - For resize calculate the output pixel value using linear interpolation on all pixels that may contribute to the output value
-			- 3: Hamming - Produces a sharper image than BILINEAR, doesn’t have dislocations on local level like with BOX.
-			- 4: Bicubic - For resize calculate the output pixel value using cubic interpolation on all pixels that may contribute to the output value
-			- 5: Lanczos - Calculate the output pixel value using a high-quality Lanczos filter (a truncated sinc) on all pixels that may contribute to the output value
-
-		- quality: For JPG images from 0(smallest files size) worst to 100(largest file size) best. Defaults to 75
+	Where size refers to the name of a predefined "Image Resize Preset" record
 	"""
 
 	# Transform thumbnail path to public/files/ path
 	file_path = os.path.join('public', 'files', *os.path.split(path)[1:])
 	filename = os.path.basename(file_path)
 
-	# Build options query for caching id
-	options = '&'.join([ 
-		"%s=%s" % (key, value) \
-		for key, value in frappe.local.form_dict.items() \
-			if key in ["size", "width", "height", "resample", "quality"]
-	])
+	# Get image resize preset or default to small if one isn't found
+	image_resize_preset_name = frappe.local.form_dict.size or "small"
+	if frappe.db.exists("Image Resize Preset", image_resize_preset_name):
+		image_resize_preset = frappe.get_doc("Image Resize Preset", image_resize_preset_name)
+	else:
+		image_resize_preset = frappe.get_doc("Image Resize Preset", "small")
+
+	# build image options
+	options = _dict({ 
+		key: image_resize_preset.get(key) \
+			for key in ("width", "height", "resample", "quality")
+	})
 
 	# Build cache path for this image and retrieve data
-	cache_path = "{}?{}".format(path, options)
+	cache_path = "{}?size={}".format(path, image_resize_preset_name)
 	buffer = frappe.cache().hget("thumbnail_cache", cache_path)
 
 	if not buffer:
 		from frappe.utils.image import process_thumbnail
-		buffer = process_thumbnail(file_path, frappe.local.form_dict)
+		buffer = process_thumbnail(file_path, options)
 
 		# set cache only when generating a new thumbnail
 		frappe.cache().hset("thumbnail_cache", cache_path, buffer)

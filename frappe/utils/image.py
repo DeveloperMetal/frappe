@@ -6,8 +6,26 @@ from __future__ import unicode_literals, print_function
 import frappe
 
 from frappe.utils import cint
+from PIL import Image
 import io
 import os
+
+RESAMPLING = {
+	"Nearest": Image.NEAREST,
+	"Box": Image.BOX,
+	"Bilinear": Image.BILINEAR,
+	"Hamming": Image.HAMMING,
+	"Bicubic": Image.BICUBIC,
+	"Lanczos": Image.LANCZOS
+}
+
+IMAGE_FORMAT_MAP = {
+	"JPEG": "JPEG",
+	"JPG": "JPEG",
+	"PNG": "PNG",
+	"BMP": "BMP",
+	"GIF": "GIF"
+}
 
 def resize_images(path, maxdim=700):
 	import Image
@@ -23,29 +41,27 @@ def resize_images(path, maxdim=700):
 
 					print("resized {0}".format(os.path.join(basepath, fname)))
 
-def process_thumbnail(path, commands):
+def process_thumbnail(path, options):
 
 	if ('.' not in path):
 		return False
 
 	extn = path.rsplit('.', 1)[-1]
-	print("[%s] EXTENSION" % extn)
 
 	if extn not in ('jpg', 'jpeg', 'png', 'gif', 'bmp'):
 		return False
 
-	from PIL import Image
-
 	filepath = frappe.utils.get_site_path(path)
-	print("[%s] Site path" % filepath)
+	buffer = io.BytesIO()
+
 	try:
 		img = Image.open(filepath)
 	except IOError:
 		raise NotFound
 
 	# capture desired image width and height
-	width = cint(commands.width or 0) or cint(commands.size or 0)
-	height = cint(commands.height or 0) or cint(commands.size or 0)
+	width = cint(options.width or 0) or cint(options.size or 0)
+	height = cint(options.height or 0) or cint(options.size or 0)
 
 	# default setting width to height and viceversa when either one is missing
 	# also defaults to 300x300 pixels max size when size information is missing
@@ -54,32 +70,16 @@ def process_thumbnail(path, commands):
 	size = (width, height)
 
 	# Defaults sampling to antialiasing
-	resample = [
-		Image.NEAREST,
-		Image.BOX,
-		Image.BILINEAR,
-		Image.HAMMING,
-		Image.BICUBIC,
-		Image.LANCZOS,
-	][cint(commands.resample or 2)]
+	resample = RESAMPLING.get(options.resample, "Bilinear")
 
 	# Defaults quality for JPG only
-	quality = cint(commands.quality or 75)
+	quality = cint(options.quality or 75)
 
 	# Actual image resize
 	img.thumbnail(size, resample)
 
-	# Extract bytes
-	buffer = io.BytesIO()
-
 	# Enforce image format
-	format = {
-		"JPEG": "JPEG",
-		"JPG": "JPEG",
-		"PNG": "PNG",
-		"BMP": "BMP",
-		"GIF": "GIF"
-	}.get(extn.upper(), "JPEG")
+	format = IMAGE_FORMAT_MAP.get(extn.upper(), "JPEG")
 
 	# default image options for PIL processing
 	image_options = dict(
@@ -89,13 +89,15 @@ def process_thumbnail(path, commands):
 	)
 
 	if format == "GIF":
-		# For GIF Animations only
+		# For GIF Animations only so we keep all frames
 		image_options["save_all"] = True
 	
-	img.save(buffer, 
-		format=format, 
-		**image_options
-	)
+	try:
+		img.save(buffer, 
+			format=format, 
+			**image_options
+		)
+	except ex:
 
 	# Return image bytes
 	return buffer
