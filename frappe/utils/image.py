@@ -97,7 +97,10 @@ def process_thumbnail(path, options):
 			format=format, 
 			**image_options
 		)
-	except ex:
+	except Exception:
+		import traceback
+		traceback.print_exc()
+
 
 	# Return image bytes
 	return buffer
