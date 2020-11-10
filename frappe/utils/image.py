@@ -46,7 +46,8 @@ def process_thumbnail(path, options):
 	if ('.' not in path):
 		return False
 
-	extn = path.rsplit('.', 1)[-1]
+	filename, extn = os.path.splitext(path)
+	extn = extn.replace(".", "")
 
 	if extn not in ('jpg', 'jpeg', 'png', 'gif', 'bmp'):
 		return False
