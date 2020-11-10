@@ -41,6 +41,9 @@ def resize_images(path, maxdim=700):
 
 					print("resized {0}".format(os.path.join(basepath, fname)))
 
+def image_resize_url(path, size):
+	return "{}?size={}".format(path.replace('/files/', '/resize/'), size)
+
 def process_thumbnail(path, options):
 
 	if ('.' not in path):

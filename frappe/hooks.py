@@ -14,8 +14,6 @@ app_logo_url = '/assets/frappe/images/frappe-framework-logo.png'
 
 develop_version = '12.x.x-develop'
 
-fixtures = ["Image Resize Preset"]
-
 app_email = "info@frappe.io"
 
 docs_app = "frappe_io"
