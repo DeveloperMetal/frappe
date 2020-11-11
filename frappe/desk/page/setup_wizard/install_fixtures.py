@@ -52,8 +52,8 @@ def add_unsubscribe():
 def add_image_resite_presets():
 	presets = [
 		{"preset_name": "small", "width": 250, "height": 250, "resample": "Bilinear", "quality": 75},
-		{"preset_name": "medium", "width": 250, "height": 250, "resample": "Bilinear", "quality": 75},
-		{"preset_name": "large", "width": 250, "height": 250, "resample": "Bilinear", "quality": 60},
+		{"preset_name": "medium", "width": 500, "height": 500, "resample": "Bilinear", "quality": 75},
+		{"preset_name": "large", "width": 1024, "height": 1024, "resample": "Bilinear", "quality": 60},
 	]
 
 	for preset in presets:
