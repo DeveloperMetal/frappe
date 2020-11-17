@@ -86,7 +86,7 @@ def image_to_base64(path, resize_preset_name=None, cache=False):
 
 	(filepath, filename, extn) = path_info
 
-	cache_key = "base64_image_cache|{}".format(filepath)
+	cache_key = "base64_image_cache|{}|{}".format(resize_preset_name or "_", filepath)
 	cache_timeout = 900
 
 	if cache:

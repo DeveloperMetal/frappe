@@ -209,17 +209,18 @@ def resize_image(path):
 		cache_key = "thumbnail_cache|{}|{}".format(image_resize_preset_name, file_path)
 		buffer = frappe.cache().get_value(cache_key, None, None, True)
 
-		if not buffer:
-			if frappe.db.exists("Image Resize Preset", image_resize_preset_name):
-				image_resize_preset = frappe.get_doc("Image Resize Preset", image_resize_preset_name)
-			else:
-				image_resize_preset = frappe.get_doc("Image Resize Preset", "small")
+		if frappe.db.exists("Image Resize Preset", image_resize_preset_name):
+			image_resize_preset = frappe.get_doc("Image Resize Preset", image_resize_preset_name)
+		else:
+			image_resize_preset = frappe.get_doc("Image Resize Preset", "small")
 
-			# build image options
-			options = _dict({ 
-				key: image_resize_preset.get(key) \
-					for key in ("width", "height", "resample", "quality", "cache_timeout")
-			})
+		# build image options
+		options = _dict({ 
+			key: image_resize_preset.get(key) \
+				for key in ("width", "height", "resample", "quality", "cache_timeout")
+		})
+
+		if not buffer:
 
 			from frappe.utils.image import process_thumbnail
 			buffer = process_thumbnail(file_path, options)
