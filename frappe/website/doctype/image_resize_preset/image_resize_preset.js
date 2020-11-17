@@ -6,9 +6,9 @@ frappe.ui.form.on('Image Resize Preset', {
 		// view document button
 		if (!frm.is_new() && !frm.is_dirty()) {
 			frm.add_custom_button("Clear Cache", function() {
-				frappe.call({
-					method: "frappe.website.doctype.image_resize_preset.image_resize_preset.clear_cache",
-					args: { name: frm.doc.name },
+				frm.call({
+					method: "clear_cache",
+					doc: frm.doc,
 					freeze: true,
 					callback: function() {
 						frappe.msgprint(`Cache Cleared for ${frm.doc.name} Preset`)

@@ -7,10 +7,6 @@ import frappe
 from frappe.model.document import Document
 
 class ImageResizePreset(Document):
-	pass
-
-@frappe.whitelist()
-def clear_cache(name):
-	frappe.cache().delete_keys("base64_image_cache|{}|*".format(name))
-	frappe.cache().delete_keys("thumbnail_cache|{}|*".format(name))
-	
+	def clear_cache(self):
+		frappe.cache().delete_keys("base64_image_cache|{}|*".format(self.name))
+		frappe.cache().delete_keys("thumbnail_cache|{}|*".format(self.name))
