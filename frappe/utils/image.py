@@ -195,7 +195,7 @@ def resize_image(img, options, image_format):
 	
 	try:
 		img.save(buffer, 
-			format=image_format, 
+			format=image_format,
 			**image_options
 		)
 	except Exception:
