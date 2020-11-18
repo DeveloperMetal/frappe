@@ -84,7 +84,7 @@ def image_to_base64(path, resize_preset_name=None, cache=False):
 	if not path_info:
 		return False
 
-	(filepath, extn) = (path_info[0], path_info[1])
+	filepath, extn = (path_info[0], path_info[2])
 
 	cache_key = "base64_image_cache|{}|{}".format(resize_preset_name or "_", filepath)
 	cache_timeout = 900
@@ -131,7 +131,7 @@ def image_to_base64(path, resize_preset_name=None, cache=False):
 
 def buffer_to_base64(buffer):
 	"""Converts a buffer to a base64 string representation.
-	
+
 	Useful to convert images to base64 strings."""
 
 	return base64.b64encode(buffer.getvalue()).decode()
@@ -142,7 +142,7 @@ def process_thumbnail(path, options):
 	if not path_info:
 		return False
 
-	(filepath, filename, extn) = path_info
+	filepath, extn = (path_info[0], path_info[2])
 	buffer = io.BytesIO()
 
 	try:
