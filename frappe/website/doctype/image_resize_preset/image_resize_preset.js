@@ -11,7 +11,7 @@ frappe.ui.form.on('Image Resize Preset', {
 					doc: frm.doc,
 					freeze: true,
 					callback: function() {
-						frappe.msgprint(`Cache Cleared for ${frm.doc.name} Preset`)
+						frappe.msgprint(`Cache Cleared for ${frm.doc.name} Preset`);
 					}
 				})
 			});

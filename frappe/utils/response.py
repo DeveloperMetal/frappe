@@ -23,7 +23,7 @@ from frappe.utils import cint
 from six import text_type
 from six.moves.urllib.parse import quote
 from frappe.core.doctype.access_log.access_log import make_access_log
-from werkzeug.exceptions import HTTPException, NotFound
+from werkzeug.exceptions import NotFound
 
 
 def report_error(status_code):
@@ -187,10 +187,11 @@ def download_private_file(path):
 	return send_private_file(path.split("/private", 1)[1])
 
 def resize_image(path):
-	"""Processes a /resize/<image file path> path with optional resize, resampling and
-	quality settings while keeping its aspect ratio intact.
+	"""Processes a /resize/<image file path> path using a preset Image Resize Preset record.
 
-	Examples: 
+	:param path: Url path of an image
+	
+	Example Usage:
 	
 	/resize/files/myimage.jpg?size=small
 

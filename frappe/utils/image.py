@@ -84,7 +84,7 @@ def image_to_base64(path, resize_preset_name=None, cache=False):
 	if not path_info:
 		return False
 
-	(filepath, filename, extn) = path_info
+	(filepath, extn) = (path_info[0], path_info[1])
 
 	cache_key = "base64_image_cache|{}|{}".format(resize_preset_name or "_", filepath)
 	cache_timeout = 900
@@ -102,26 +102,26 @@ def image_to_base64(path, resize_preset_name=None, cache=False):
 		return path
 
 	# Enforce image format
-	format = IMAGE_FORMAT_MAP.get(extn.upper(), "JPEG")
+	image_format = IMAGE_FORMAT_MAP.get(extn.upper(), "JPEG")
 
 	if resize_preset_name:
 		preset = get_image_resize_preset(resize_preset_name)
 		cache_timeout = preset.get("cache_timeout", IMAGE_CACHE_EXPIRES)
 		# Enforce image format
-		format = IMAGE_FORMAT_MAP.get(extn.upper(), "JPEG")
-		buffer = resize_image(img, preset, format)
+		image_format = IMAGE_FORMAT_MAP.get(extn.upper(), "JPEG")
+		buffer = resize_image(img, preset, image_format)
 
 		if not buffer:
 			return False
 	else:
 		try:
-			img.save(buffer, format=format)
+			img.save(buffer, format=image_format)
 		except Exception:
 			traceback.print_exc()
 
 			return False
 
-	data = "data:image/{};base64,{}".format(format.lower(), buffer_to_base64(buffer))
+	data = "data:image/{};base64,{}".format(image_format.lower(), buffer_to_base64(buffer))
 
 	if cache:
 		# Build cache path for this image and retrieve data
@@ -131,7 +131,9 @@ def image_to_base64(path, resize_preset_name=None, cache=False):
 
 def buffer_to_base64(buffer):
 	"""Converts a buffer to a base64 string representation.
-	Useful to convert images to base64 strings."""	
+	
+	Useful to convert images to base64 strings."""
+
 	return base64.b64encode(buffer.getvalue()).decode()
 
 def process_thumbnail(path, options):
@@ -149,16 +151,16 @@ def process_thumbnail(path, options):
 		raise NotFound
 
 	# Enforce image format
-	format = IMAGE_FORMAT_MAP.get(extn.upper(), "JPEG")
+	image_format = IMAGE_FORMAT_MAP.get(extn.upper(), "JPEG")
 
-	buffer = resize_image(img, options, format)
+	buffer = resize_image(img, options, image_format)
 
 	if not buffer:
 		return False
 
 	return buffer.getvalue()
 
-def resize_image(img, options, format):
+def resize_image(img, options, image_format):
 	buffer = io.BytesIO()
 
 	# capture desired image width and height
@@ -187,13 +189,13 @@ def resize_image(img, options, format):
 		quality=quality
 	)
 
-	if format == "GIF":
+	if image_format == "GIF":
 		# For GIF Animations only so we keep all frames
 		image_options["save_all"] = True
 	
 	try:
 		img.save(buffer, 
-			format=format, 
+			format=image_format, 
 			**image_options
 		)
 	except Exception:
