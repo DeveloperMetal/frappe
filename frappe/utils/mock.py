@@ -84,14 +84,14 @@ def build_get_meta_side_effects(metas):
 			self.assertTrue(doc.customer == "test-customer")
 	"""
 
-	def side_effect(doctype, cached=False):
-		for meta in metas:
-			if meta.name == doctype:
-				return meta
+def side_effect(doctype, cached=False):
+	for meta in metas:
+		if meta.name == doctype:
+			return meta
 
-		raise Exception("Unexpected get_meta doctype: {}".format(doctype))
-	
-	return side_effect
+	raise Exception("Unexpected get_meta doctype: {}".format(doctype))
+
+return side_effect
 
 def build_get_doc_side_effect(docs):
 	"""Builds a side effect method to wrap frappe.get_doc method. This makes it
